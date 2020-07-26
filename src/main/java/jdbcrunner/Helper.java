@@ -619,4 +619,12 @@ public class Helper {
 
 		return template;
 	}
+	
+	public void setTransactionReadOnly() throws SQLException {
+	    connection.setReadOnly(true);
+    }
+
+	public void setTransactionReadWrite() throws SQLException {
+	    connection.setReadOnly(false);
+    }
 }

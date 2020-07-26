@@ -167,22 +167,25 @@ function newOrder() {
     
     for (var retry = 0; retry <= DEADLOCK_RETRY_LIMIT; retry++) {
         try {
+            var timeBegin = Date.now();
             var rc01 = query("SELECT /* N-01 */ w.w_tax, c.c_discount, c.c_last, c.c_credit "
                            + "FROM warehouse w "
                            + "INNER JOIN customer c ON c.c_w_id = w.w_id "
                            + "WHERE w.w_id = $int AND c.c_d_id = $int AND c.c_id = $int",
                            w_id, d_id, c_id);
-            
+            var time1 = Date.now();
             var rs02 = fetchAsArray("SELECT /* N-02 */ d_tax, d_next_o_id "
                            + "FROM district "
                            + "WHERE d_w_id = $int AND d_id = $int "
                            + "FOR UPDATE",
                            w_id, d_id);
+            var time2 = Date.now();
             
             var uc03 = execute("UPDATE /* N-03 */ district "
                            + "SET d_next_o_id = d_next_o_id + 1 "
                            + "WHERE d_w_id = $int AND d_id = $int",
                            w_id, d_id);
+            var time3 = Date.now();
             
             var uc04 = execute("INSERT /* N-04 */ INTO orders "
                            + "(o_id, o_d_id, o_w_id, o_c_id, o_entry_d, "
@@ -191,12 +194,12 @@ function newOrder() {
                            + "NULL, $int, $int)",
                            rs02[0][1], d_id, w_id, c_id, new Date(),
                            ol_cnt, all_local);
-            
+            var time4 = Date.now();
             var uc05 = execute("INSERT /* N-05 */ INTO new_orders "
                            + "(no_o_id, no_d_id, no_w_id) "
                            + "VALUES ($int, $int, $int)",
                            rs02[0][1], d_id, w_id);
-            
+            var time5 = Date.now();
             for (var index = 0; index < ol_cnt; index++) {
                 var rs06 = fetchAsArray("SELECT /* N-06 */ i_price, i_name, i_data "
                                + "FROM item "
@@ -250,8 +253,10 @@ function newOrder() {
                                supply_w_id[order[index]], quantity[order[index]],
                                quantity[order[index]] * Number(rs06[0][0]), rs07[0][d_id]);
             }
-            
+            var time6 = Date.now();
             commit();
+            var timeEnd = Date.now();
+            info("[new order] Elaped time: Total:" + (timeEnd-timeBegin) + "ms [" + (time1-timeBegin) + " " + (time2-time1) + " " + (time3-time2) + " " + (time4-time3) + " " + (time5-time4) + " " + (time6 - time5) + " " + (timeEnd-time6) + "]");
             return;
         } catch (e) {
             if (isDeadlock(e)) {

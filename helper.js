@@ -54,6 +54,14 @@ function getDatabaseMinorVersion() {
 	return helper.getDatabaseMinorVersion();
 }
 
+function setTransactionReadOnly() {
+    helper.setTransactionReadOnly();
+}
+
+function setTransactionReadWrite() {
+    helper.setTransactionReadWrite();
+}
+
 function commit() {
     helper.commit();
 }
