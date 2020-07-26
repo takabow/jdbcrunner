@@ -2,3 +2,8 @@
 /classes/
 /jdbcrunner-*.jar
 /jdbcrunner-*.zip
+/logs
+.DS_Store
+.idea/
+jdbcrunner.iml
+
